@@ -4,3 +4,5 @@ information, parses the XML file, and extracts the list of top
 online newspapers, displaying them in a table. The JavaScript 
 program is embedded in an HTML file so that it can be executed 
 within a browser.
+
+http://www-scf.usc.edu/~jianyanz/parseXML.html
