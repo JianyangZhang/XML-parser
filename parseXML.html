@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>parseXML</title>
+		<meta charset="utf-8">
+		<style type="text/css">
+			body {
+				margin:auto;
+				margin-top:50px;
+				width:800px;
+			}			
+			h1 {
+				text-align:center;
+			}	
+			.center {
+				margin:auto;
+				display:block;
+			}			
+		</style>
+		<script type="text/javascript">
+			window.onload = function () {
+				var oTxt1 = document.getElementById("txt1");
+				var oBtn1 = document.getElementById("btn1");
+				
+				function getXML(url) {
+					if (window.XMLHttpRequest) {
+						var oAjax = new XMLHttpRequest(); 
+					}
+					else {
+						var oAjax = new ActiveXObject("Microsoft.XMLHTTP");
+					}
+					oAjax.onreadystatechange = function () {
+						if (oAjax.readyState == 4) {
+							if (oAjax.status == 404) {
+								alert("File Does Not Exist");
+							} else if (oAjax.status != 200) {
+								alert("Error: " + oAjax.status);
+							}
+						}
+					}					
+					oAjax.open("GET", url, false);
+					try {
+						oAjax.send();
+					}catch (err) {					
+						alert("File Does Not Exist");
+						return null;
+					}
+										
+					return oAjax.responseXML;
+				}
+				
+				function parseXML(xmlDoc, htmlFile){									
+					var aData = xmlDoc.getElementsByTagName("Data");
+					var aRow = xmlDoc.getElementsByTagName("Row");
+					if (aRow.length == 0) {
+						alert("No Data Entry");
+						return;
+					}		
+					var popWindow = window.open(htmlFile, "_blank", "scrollbars = yes, resizable = yes, width = 1000, height = 800");					
+					popWindow.document.write('<!doctype html><html><head><title>XML Table</title></head><body>');
+					popWindow.document.write('<table align="center" border="3" cellspacing="3" cellpadding="3">');
+					popWindow.document.write('<thead>');					
+					for (var i = 0; i < aData.length; i++) {
+						popWindow.document.write('<td><b>' + aData[i].firstChild.nodeValue + '</b></td>');						
+					}				
+					popWindow.document.write('</thead>');					
+					popWindow.document.write('<tbody>');
+					for (var i = 0; i < aRow.length; i++) {
+						popWindow.document.write('<tr>');
+						<!-- Slot -->
+						var j = 0;
+						popWindow.document.write('<td>');
+						if (aRow[i].children[j].firstChild != null && aRow[i].children[j].firstChild.nodeValue.trim().length != 0) {															
+							popWindow.document.write(aRow[i].children[j].firstChild.nodeValue);							
+						} else {								
+							popWindow.document.write('N.A.');							
+						}
+						popWindow.document.write('</td>');
+						j++;
+						<!-- Newspapaer -->
+						popWindow.document.write('<td>');
+						if (aRow[i].children[j].firstChild != null && aRow[i].children[j].firstChild.nodeValue.trim().length != 0) {															
+							popWindow.document.write(aRow[i].children[j].firstChild.nodeValue);							
+						} else {
+							popWindow.document.write('N.A.');
+						}
+						popWindow.document.write('</td>');
+						j++;
+						<!-- Location -->
+						popWindow.document.write('<td>');
+						popWindow.document.write('<ul>');
+						var location = aRow[i].children[j];	
+						if (location.children.length >= 2) {															
+							if ((location.children[0].firstChild == null || location.children[0].firstChild.nodeValue.trim().length == 0)
+								&&	
+								(location.children[1].firstChild == null || location.children[1].firstChild.nodeValue.trim().length == 0)) {
+								popWindow.document.write('N.A.');									
+							} else { 					
+								if (location.children[0].firstChild != null && location.children[0].firstChild.nodeValue.trim().length != 0) {
+									popWindow.document.write('<li>' + location.children[0].firstChild.nodeValue + '</li>');	
+								}		
+								if (location.children[1].firstChild != null && location.children[1].firstChild.nodeValue.trim().length != 0) {
+									popWindow.document.write('<li>' + location.children[1].firstChild.nodeValue + '</li>');	
+								}	
+							}						
+						} else if (location.children.length == 1) {
+							if (location.children[0].firstChild != null && location.children[0].firstChild.nodeValue.trim().length != 0) {
+								popWindow.document.write('<li>' + location.children[0].firstChild.nodeValue + '</li>');	
+							} else {
+								popWindow.document.write('N.A.');
+							}					
+						} else {
+							popWindow.document.write('N.A.');
+						}
+						popWindow.document.write('</ul>');
+						popWindow.document.write('</td>');
+						j++;
+						<!-- HomePage -->
+						popWindow.document.write('<td>');
+						if (aRow[i].children[j].firstChild != null && aRow[i].children[j].firstChild.nodeValue.trim().length != 0) {
+							popWindow.document.write('<a href="');							
+							popWindow.document.write(aRow[i].children[j].firstChild.nodeValue);								
+							popWindow.document.write('">');
+							popWindow.document.write(aRow[i].children[j].firstChild.nodeValue);	
+							popWindow.document.write('</a>');
+						} else {
+							popWindow.document.write('N.A.');
+						}
+						popWindow.document.write('</td>');
+						j++;
+						<!-- Logo -->
+						popWindow.document.write('<td>');	
+						if (aRow[i].children[j].firstChild != null && aRow[i].children[j].firstChild.nodeValue.trim().length != 0) {
+							popWindow.document.write('<img src=' + aRow[i].children[j].firstChild.nodeValue + ' />');	
+						} else {
+							popWindow.document.write('N.A.');
+						}			
+						popWindow.document.write('</td>');						
+						popWindow.document.write('</tr>');
+					}
+					popWindow.document.write('</tbody></table>');
+					popWindow.document.write('</body></html>');					
+				}
+				
+				function xmlToString(xmlFile) {
+					if (window.ActiveXObject) {       
+						return xmlFile.xml;
+					}					
+					else {     
+						var oXMLSerializer = new XMLSerializer();
+						return oXMLSerializer.serializeToString(xmlFile);
+					}
+				}
+				
+				function parseError(txt) {
+					var errorMsg = null;
+					var parser = new DOMParser();
+					var doc = parser.parseFromString(txt, "application/xml");
+					if (doc.getElementsByTagName("parsererror")[0]) {
+						errorMsg = doc.getElementsByTagName("parsererror")[0].childNodes[0].data
+					}
+					return errorMsg;
+				};
+
+				oBtn1.onclick = function () {
+					if (oTxt1.value.trim().length == 0) {
+						alert("Error: No Input");
+						return;
+					}
+					var xmlDoc = getXML(oTxt1.value);					
+					if (xmlDoc != null) {	
+						var xmlTxt = xmlToString(xmlDoc);
+						var errorMsg = parseError(xmlTxt);
+						if (errorMsg != null) {
+							alert("Error in XML File");
+							return;
+						}
+						parseXML(xmlDoc, window.location);
+					}					
+				}				
+			}
+		</script>
+	</head>
+	
+	<!--<body>-->
+		<h1>Enter URL for Newspaper List XML File</h1>
+		<form method="GET">
+			<input type="text" id="txt1" class="center" value="" autofocus /><br/>
+			<input type="button" id="btn1" class="center" value="Submit Query" />
+		</form>
+	</body>
+</html>
